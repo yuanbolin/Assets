@@ -14,7 +14,7 @@
     <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
     <style>
         #map {
-            height: 1000px;
+            height: 800px;
         }
 
         .handle {
@@ -94,8 +94,8 @@
 
         map.on('dblclick', () => {
             var polygon1 = L.polyline(points);
-            polygon.bindPopup("我是⚪")
-            getPonitByTurf(polygon1.toGeoJSON());
+            polygon.bindPopup(`<p>当前路程总长<br/>${getPonitByTurf(polygon1.toGeoJSON())}公里</p>`)
+
             if (points.length) {
                 clearHandle()
                 points = [];
@@ -171,14 +171,18 @@
         console.log('距离', polygon)
         var length = turf.length(polygon);
 
-        alert(length + " 公里");
+        return length
     }
+
+    //以下是方法对应的别名，map.on()和map.addEventListener的效果相同
+    //addEventListener = on, removeEventListener = off(...), clearEventListener = off()
+    //addOneTimeListener = once, fireEvent = fire, hasEventListeners = listens
 
     //计算面积
     function getAreaByTurf(polygon) {
         console.log('面积', polygon)
         var area = turf.area(polygon);
-        alert("面积： " + area + "  平方米");
+        return area
     }
 
     function pointsHandle() {
@@ -199,12 +203,10 @@
         });
 
         map.on('dblclick', () => {
-            console.log(points)
-            var polygon1 = L.polygon(points);
-            console.log(polygon1)
-            getAreaByTurf(polygon1.toGeoJSON());
+            clearHandle()
             if (points.length) {
-                clearHandle()
+                var polygon1 = L.polygon(points);
+                polygon.bindPopup(`<p>该区域占地面积为<br />${getAreaByTurf(polygon1.toGeoJSON())}平方米</p>`);
                 points = [];
             }
         })

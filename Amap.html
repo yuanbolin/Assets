@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" type="text/css">
+    <style>
+        html,body,#container{
+            height: 100%
+        }
+        .btn{
+            width: 6rem;
+            margin: 0 1rem 0 4.5rem;
+        }
+    </style>
+    <title>鼠标工具-距离面积测量</title>
+</head>
+<body>
+<div id='container'></div>
+<div class="input-card" style='width: 18rem;'>
+    <div class="input-item">
+        <input type="radio" name='func' checked="" value='rule'><span class="input-text">距离测量</span>
+        <input type="radio" name='func' value='measureArea'><span class="input-text">面积测量</span>
+    </div>
+    <div class="input-item">
+        <input id="close" type="button" class="btn" value="关闭" />
+    </div>
+</div>
+<script src="https://webapi.amap.com/maps?v=1.4.15&key=您申请的key值&plugin=AMap.MouseTool"></script>
+<script type="text/javascript">
+    var map = new AMap.Map('container',{
+        zoom:15
+    });
+
+    var mouseTool = new AMap.MouseTool(map);
+
+    function draw(type){
+        switch(type){
+            case 'rule':{
+                mouseTool.rule({
+                    startMarkerOptions : {//可缺省
+                        icon: new AMap.Icon({
+                            size: new AMap.Size(19, 31),//图标大小
+                            imageSize:new AMap.Size(19, 31),
+                            image: "https://webapi.amap.com/theme/v1.3/markers/b/start.png"
+                        })
+                    },
+                    endMarkerOptions : {//可缺省
+                        icon: new AMap.Icon({
+                            size: new AMap.Size(19, 31),//图标大小
+                            imageSize:new AMap.Size(19, 31),
+                            image: "https://webapi.amap.com/theme/v1.3/markers/b/end.png"
+                        }),
+                        offset: new AMap.Pixel(-9, -31)
+                    },
+                    midMarkerOptions : {//可缺省
+                        icon: new AMap.Icon({
+                            size: new AMap.Size(19, 31),//图标大小
+                            imageSize:new AMap.Size(19, 31),
+                            image: "https://webapi.amap.com/theme/v1.3/markers/b/mid.png"
+                        }),
+                        offset: new AMap.Pixel(-9, -31)
+                    },
+                    lineOptions : {//可缺省
+                        strokeStyle: "solid",
+                        strokeColor: "#FF33FF",
+                        strokeOpacity: 1,
+                        strokeWeight: 2
+                    }
+                    //同 RangingTool 的 自定义 设置，缺省为默认样式
+                });
+                break;
+            }
+            case 'measureArea':{
+                mouseTool.measureArea({
+                    strokeColor:'#80d8ff',
+                    fillColor:'#80d8ff',
+                    fillOpacity:0.3
+                    //同 Polygon 的 Option 设置
+                });
+                break;
+            }
+        }
+    }
+    var radios = document.getElementsByName('func');
+    for(var i=0;i<radios.length;i+=1){
+        radios[i].onchange = function(e){
+            draw(e.target.value)
+        }
+    }
+    draw('rule')
+
+    document.getElementById('close').onclick = function(){
+        mouseTool.close(true)//关闭，并清除覆盖物
+        for(var i=0;i<radios.length;i+=1){
+            radios[i].checked = false;
+        }
+    }
+</script>
+</body>
+</html>
