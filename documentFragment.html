@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>列表一次性渲染大量数据优化demo</title>
+</head>
+<body>
+<ul></ul>
+<script>
+    //插入十万条数据
+    const total = 100000000
+    //每次插入20条
+    const once = 20
+    //插入的数据需要的次数
+    const loopCount = Math.ceil(total / once)
+    //渲染的次数
+    let countRender = 0;
+    const ul = document.querySelector('ul')
+
+    //添加数据的方法
+    function add() {
+        //创建虚拟节点
+        let fragment = document.createDocumentFragment()
+        for (let i = 0; i < once; i++) {
+            const li = document.createElement('li')
+            li.innerText = Math.floor(Math.random() * 100000000)
+            fragment.appendChild(li)
+        }
+        ul.appendChild(fragment)
+        loop()
+        countRender++
+    }
+
+    function loop() {
+        if (countRender > loopCount) return
+        window.requestAnimationFrame(add)
+        // add()
+    }
+
+
+    loop()
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin=""/>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+    <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
+    <style>
+        #map {
+            height: 1000px;
+        }
+
+        .handle {
+            position: absolute;
+            left: 20px;
+            top: 220px;
+            color: red;
+            z-index: 1000;
+            cursor: pointer;
+            line-height: 40px;
+            background: #fff;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="handle">
+    <div id="point">多边形</div>
+    <div id="marker">点标记</div>
+    <div id="circle">圆</div>
+    <div id="Polyline">折线</div>
+</div>
+<div id="map"></div>
+<script>
+    var map = L.map("map", {
+        doubleClickZoom: false
+    }).setMaxBounds([[-90, 0], [90, 360]]).setView([39.904983, 116.427287], 10, {
+        zoomControl: false,
+    });
+    //添加比例尺
+    L.control.scale().addTo(map);
+
+
+    //添加点击事件
+    var popup = L.popup();
+
+    function onMapClick(e) {
+        e.on('click', (eve)=>{
+            popup.setLatLng(eve.latlng).setContent("你在经纬度为" + eve.latlng.toString() + "这个点上").openOn(map);
+        });
+    }
+
+
+
+    $('#point').click(() => {
+        this.pointsHandle()
+    })
+
+    $('#marker').click(() => {
+        this.markerHandle()
+    })
+
+    $('#circle').click(() => {
+        this.circleHandle()
+    })
+
+    $('#Polyline').click(() => {
+        this.PolylineHandle()
+    })
+
+    function PolylineHandle() {
+        clearHandle()
+        //画折线
+        let points = [];
+
+        const polygon = new L.polyline(points, {color: 'red'});
+        map.addLayer(polygon);
+
+        map.on('mousedown', e => {
+            if (points.length > 0 && e.latlng.lat == points[points.length - 1][0] && e.latlng.lng == points[points.length - 1][1]) return
+            points.push([e.latlng.lat, e.latlng.lng]);
+
+            map.on('mousemove', event => {
+                polygon.setLatLngs([...points, [event.latlng.lat, event.latlng.lng]])
+            });
+        });
+
+        map.on('dblclick', () => {
+            var polygon1 = L.polyline(points);
+            polygon.bindPopup("我是⚪")
+            getPonitByTurf(polygon1.toGeoJSON());
+            if (points.length) {
+                clearHandle()
+                points = [];
+            }
+        })
+    }
+
+    function circleHandle() {
+        clearHandle()
+        var r = 0
+        var i = null
+        var tempCircle = new L.circle()
+
+        map.on('mousedown', onmouseDown);
+        map.on('dblclick', ondblclick);
+        map.on('mousemove', onMove)
+
+        //map.off(....) 关闭该事件
+
+        function onmouseDown(e) {
+            i = e.latlng
+            //确定圆心
+        }
+
+        function onMove(e) {
+            if (i) {
+                r = L.latLng(e.latlng).distanceTo(i)//计算半径
+                tempCircle.setLatLng(i)
+                tempCircle.setRadius(r)
+                tempCircle.setStyle({
+                    color: 'red',
+                    fillColor: '#f03',
+                    fillOpacity: 0.5,
+                })
+                map.addLayer(tempCircle)
+
+            }
+        }
+
+        function ondblclick(e) {
+            clearHandle()
+            tempCircle.on('contextmenu', function (e) {
+                console.log(e)
+                // 两种方法都可以删除
+                // this.remove()
+                // map.removeLayer(this);
+            });
+            i = null
+            r = 0
+        }
+    }
+
+    function clearHandle() {
+        map.off('mousemove');
+        map.off('mousedown');
+        map.off('dblclick');
+    }
+
+    function markerHandle() {
+        clearHandle()
+        map.on('mousedown', e => {
+            var marker = L.marker([e.latlng.lat, e.latlng.lng], {
+                title: '我是marker'
+            }).addTo(map);
+            marker.bindPopup('<p>Hello world!<br />This is a nice popup.</p>');
+            clearHandle()
+        });
+
+    }
+
+    //计算距离
+    function getPonitByTurf(polygon) {
+        console.log('距离', polygon)
+        var length = turf.length(polygon);
+
+        alert(length + " 公里");
+    }
+
+    //计算面积
+    function getAreaByTurf(polygon) {
+        console.log('面积', polygon)
+        var area = turf.area(polygon);
+        alert("面积： " + area + "  平方米");
+    }
+
+    function pointsHandle() {
+        clearHandle()
+        //画多边形
+        let points = [];
+
+        const polygon = new L.Polygon(points);
+        map.addLayer(polygon);
+
+        map.on('mousedown', e => {
+            if (points.length > 0 && e.latlng.lat == points[points.length - 1][0] && e.latlng.lng == points[points.length - 1][1]) return
+            points.push([e.latlng.lat, e.latlng.lng]);
+
+            map.on('mousemove', event => {
+                polygon.setLatLngs([...points, [event.latlng.lat, event.latlng.lng]])
+            });
+        });
+
+        map.on('dblclick', () => {
+            console.log(points)
+            var polygon1 = L.polygon(points);
+            console.log(polygon1)
+            getAreaByTurf(polygon1.toGeoJSON());
+            if (points.length) {
+                clearHandle()
+                points = [];
+            }
+        })
+    }
+
+
+    var mapLayers = {
+        '谷歌高德杂交/卫星': L.layerGroup([
+            L.tileLayer('https://mt3.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                minZoom: 3,
+                attribution: "谷歌提供卫星图，高德提供街道图"
+            }),
+            L.tileLayer('//webst0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                maxNativeZoom: 18,
+                minZoom: 3,
+                attribution: "谷歌提供卫星图，高德提供街道图",
+                subdomains: "1234",
+                opacity: 0.8
+            })
+        ]).addTo(map),
+        '高德/卫星': L.layerGroup([
+            L.tileLayer('//webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                maxNativeZoom: 18,
+                minZoom: 3,
+                attribution: "高德地图 AutoNavi.com",
+                subdomains: "1234"
+            }),
+            L.tileLayer('//webst0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                maxNativeZoom: 18,
+                minZoom: 3,
+                attribution: "高德地图 AutoNavi.com",
+                subdomains: "1234",
+                opacity: 0.5
+            })
+        ]),
+        '高德/街道': L.tileLayer('//webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            maxNativeZoom: 18,
+            minZoom: 3,
+            attribution: "高德地图 AutoNavi.com",
+            subdomains: "1234"
+        }),
+        '谷歌/卫星': L.tileLayer('https://mt3.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            minZoom: 3,
+            attribution: "谷歌 Google.cn"
+        }),
+        '谷歌/街道': L.tileLayer('https://mt3.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            minZoom: 3,
+            attribution: "谷歌 Google.cn"
+        }),
+        '智图/街道': L.tileLayer('//map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 20,
+            maxNativeZoom: 16,
+            minZoom: 3,
+            attribution: "智图 GeoQ.cn"
+        })
+    }
+    var layerControl = L.control.layers(mapLayers, {}, {
+        position: 'topright',
+        collapsed: true
+    }).addTo(map);
+    L.control.zoom({
+        zoomInTitle: '放大',
+        zoomOutTitle: '缩小'
+    }).addTo(map);
+</script>
+
+</body>
+</html>
