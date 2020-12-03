@@ -52,11 +52,10 @@
     var popup = L.popup();
 
     function onMapClick(e) {
-        e.on('click', (eve)=>{
+        e.on('click', (eve) => {
             popup.setLatLng(eve.latlng).setContent("你在经纬度为" + eve.latlng.toString() + "这个点上").openOn(map);
         });
     }
-
 
 
     $('#point').click(() => {
@@ -136,7 +135,10 @@
         }
 
         function ondblclick(e) {
+            let s=Math.floor(Math.PI*r*r)/1000
             clearHandle()
+            // var polygon1 = L.circle([i.lat, i.lng], {radius: r});
+            tempCircle.bindPopup(`<p>该区域占地面积为<br/>${s}公里</p>`)
             tempCircle.on('contextmenu', function (e) {
                 console.log(e)
                 // 两种方法都可以删除
@@ -160,7 +162,7 @@
             var marker = L.marker([e.latlng.lat, e.latlng.lng], {
                 title: '我是marker'
             }).addTo(map);
-            marker.bindPopup('<p>Hello world!<br />This is a nice popup.</p>');
+            marker.bindPopup(`<p>我处在<br />[${e.latlng.lat},${e.latlng.lng}]位置!</p>`);
             clearHandle()
         });
 
