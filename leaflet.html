@@ -18,9 +18,6 @@
         }
 
         .handle {
-            position: absolute;
-            left: 20px;
-            top: 220px;
             color: red;
             z-index: 1000;
             cursor: pointer;
@@ -28,15 +25,28 @@
             background: #fff;
             padding: 10px;
         }
+
+        .leaflet-label {
+            background-color: rgba(0, 0, 0, 0.6);
+            background-clip: padding-box;
+            color: #fff;
+            display: block;
+            font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+            font-weight: bold;
+            padding: 1px 3px;
+            position: absolute;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 6;
+            border: 0
+        }
     </style>
 </head>
 <body>
-<div class="handle">
-    <div id="point">多边形</div>
-    <div id="marker">点标记</div>
-    <div id="circle">圆</div>
-    <div id="Polyline">折线</div>
-</div>
 <div id="map"></div>
 <script>
     var map = L.map("map", {
@@ -56,23 +66,6 @@
             popup.setLatLng(eve.latlng).setContent("你在经纬度为" + eve.latlng.toString() + "这个点上").openOn(map);
         });
     }
-
-
-    $('#point').click(() => {
-        this.pointsHandle()
-    })
-
-    $('#marker').click(() => {
-        this.markerHandle()
-    })
-
-    $('#circle').click(() => {
-        this.circleHandle()
-    })
-
-    $('#Polyline').click(() => {
-        this.PolylineHandle()
-    })
 
     function PolylineHandle() {
         clearHandle()
@@ -135,9 +128,14 @@
         }
 
         function ondblclick(e) {
-            let s=Math.floor(Math.PI*r*r)/1000
+            let s = Math.floor(Math.PI * r * r) / 1000
             clearHandle()
             // var polygon1 = L.circle([i.lat, i.lng], {radius: r});
+            tempCircle.bindTooltip('测试', {
+                interactive: true,
+                sticky: true,
+                className: 'leaflet-label'
+            })
             tempCircle.bindPopup(`<p>该区域占地面积为<br/>${s}公里</p>`)
             tempCircle.on('contextmenu', function (e) {
                 console.log(e)
@@ -162,6 +160,7 @@
             var marker = L.marker([e.latlng.lat, e.latlng.lng], {
                 title: '我是marker'
             }).addTo(map);
+
             marker.bindPopup(`<p>我处在<br />[${e.latlng.lat},${e.latlng.lng}]位置!</p>`);
             clearHandle()
         });
@@ -280,6 +279,41 @@
         zoomInTitle: '放大',
         zoomOutTitle: '缩小'
     }).addTo(map);
+    L.Control.Legend = L.Control.extend({
+        options: {
+            position: 'topright' //初始位置
+
+        },
+        initialize: (options) => {
+            L.Util.extend(this.options, options);
+
+        },
+        onAdd: (map) => {
+            //创建一个class为leaflet-control-clegend的div
+            this._container = L.DomUtil.create('div', 'handle');
+            let point = document.createElement('div')
+            point.innerText = '多边形'
+            L.DomEvent.addListener(point, 'click', this.pointsHandle, this);
+            let marker = document.createElement('div')
+            marker.innerText = '点标记'
+            L.DomEvent.addListener(marker, 'click', this.markerHandle, this);
+            let circle = document.createElement('div')
+            circle.innerText = '圆'
+            L.DomEvent.addListener(circle, 'click', this.circleHandle, this);
+            let Polyline = document.createElement('div')
+            Polyline.innerText = '折线'
+            L.DomEvent.addListener(Polyline, 'click', this.PolylineHandle, this);
+            this._container.appendChild(point)
+            this._container.appendChild(marker)
+            this._container.appendChild(circle)
+            this._container.appendChild(Polyline)
+            return this._container;
+        },
+    });
+    L.control.logo = function (options) {
+        return new L.Control.Legend(options)
+    };
+    L.control.logo().addTo(map)
 </script>
 
 </body>
