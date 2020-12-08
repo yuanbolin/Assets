@@ -314,6 +314,9 @@
         return new L.Control.Legend(options)
     };
     L.control.logo().addTo(map)
+    map.eachLayer((layer)=>{
+        console.log(layer)
+    })
 </script>
 
 </body>
