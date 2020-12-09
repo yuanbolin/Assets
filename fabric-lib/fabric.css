@@ -1,0 +1,118 @@
+
+.box {
+    width: 1000px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.box::-webkit-scrollbar {
+    display: none
+}
+
+.button {
+    background: transparent;
+    border: 0px;
+    padding: 0;
+    font-size: 16px;
+    height: 16px;
+    line-height: 16px;
+    border-radius: 4px;
+    outline: none;
+    color: #000000;
+}
+
+.item {
+    margin: 0 auto;
+    box-sizing: content-box;
+    padding-top: 150px;
+    width: 600px;
+    background: url("../images/xiaofangche.png") top center no-repeat;
+    background-size: 100% 100%;
+    position: relative;
+}
+
+.box_2 {
+    width: 600px;
+
+    position: relative;
+}
+
+.box p {
+    text-align: center;
+}
+
+.input-group {
+    padding: 10px 0;
+}
+
+.handle {
+    padding: 10px;
+    border: 1px solid #0f0f0f;
+    border-radius: 4px;
+    position: fixed;
+    left: 10%;
+    top: 30%;
+    transform: translateY(-50%);
+}
+
+.add, .delete, .getJSON {
+    display: block;
+    margin: 10px;
+}
+
+.jiluList {
+    list-style: none;
+    display: flex;
+    justify-content: space-evenly;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+    overflow-y: auto;
+}
+
+.jiluList li {
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+.jiluList::-webkit-scrollbar { /*滚动条整体样式*/
+    width: 3px; /*宽分别对应竖滚动条的尺寸*/
+    height: 3px; /*高分别对应横滚动条的尺寸*/
+}
+
+.jiluList::-webkit-scrollbar-track { /*滚动条里面轨道*/
+    background-color: #cccccc;
+}
+
+.jiluList::-webkit-scrollbar-thumb { /*滚动条里面小方块*/
+    background-color: #666666;
+    border-radius: 3px;
+}
+
+.btn-jiashia {
+    color: #000000;
+    text-decoration: none;
+    background: #ffffff;
+    outline: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 90px;
+    height: 105px;
+    overflow: hidden;
+}
+
+.btn-jiashi {
+    color: #000000;
+    border: 0;
+    background: #ffffff;
+    outline: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 90px;
+}

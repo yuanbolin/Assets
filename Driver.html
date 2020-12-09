@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://unpkg.com/driver.js/dist/driver.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/driver.js/dist/driver.min.css">
+</head>
+<body>
+<h1 id="h1">你好1</h1>
+<button id="btn1">高亮你好1</button>
+<h1 id="h2">你好2</h1>
+<button id="btn2">高亮你好2</button>
+<h1 id="h3">你好3</h1>
+<button id="btn3">步骤</button>
+<h1 id="h4">你好4</h1>
+<button id="btn4">高亮你好4</button>
+<h1 id="h5">你好5</h1>
+<button id="btn5">高亮你好5</button>
+
+<script>
+    //页面的引导功能
+    //在项目中使用Driver.js
+    //1:yarn add driver.js
+    //2: import 'driver.js/dist/driver.min.css'
+    //3: import Driver from 'driver.js'
+    let btn1 = document.querySelector('#btn1')
+    let btn2 = document.querySelector('#btn2')
+    let btn3 = document.querySelector('#btn3')
+    let btn4 = document.querySelector('#btn4')
+    let btn5 = document.querySelector('#btn5')
+    btn1.onclick = () => {
+        setTimeout(() => {
+            const driver = new Driver();
+            driver.highlight('#h1')
+        }, 500)
+
+    }
+    btn2.onclick = () => {
+        setTimeout(() => {
+            const driver = new Driver();
+            driver.highlight({
+                element: '#h2',
+                popover: {
+                    title: '我真厉害!',
+                    description: "那还用说!"
+                }
+            })
+        }, 50)
+
+    }
+    const driver = new Driver({
+        className: 'scoped-class', // className包装驱动程序。js弹出窗口
+        animate: true, // 在更改突出显示的元素时进行动画
+        opacity: 0.75, // 背景不透明度(0表示只弹出窗口，没有叠加)
+        padding: 10, // 元素从边缘到周围的距离
+        allowClose: false, //点击叠加是否应该关闭
+        overlayClickNext: false, // 如果它移动到下一步覆盖点击
+        doneBtnText: '结束', // 文本在最后的按钮
+        closeBtnText: '关闭', //关闭按钮上的文本
+        nextBtnText: '下一步', // 下一步按钮文本
+        prevBtnText: '上一步', // 上一步按钮文本
+        showButtons: true, // 在页脚显示控件按钮
+        keyboardControl: true, // 允许通过键盘控制(转义关闭，方向键移动)
+        scrollIntoViewOptions: {}, // 在可能的情况下，我们使用' scrollIntoView() '，如果需要的话，在这里传递它的选项
+        onHighlightStarted: Element => {console.log(Element)}, ///当元素将要被突出显示时调用
+        onHighlighted: Element => {console.log(Element)}, // 在元素完全突出显示时调用
+        onDeselected: Element => {console.log(Element)}, // 当元素被取消时调用
+        onReset: Element => {console.log(Element)}, // /当即将清除覆盖时调用
+        onNext: Element => {console.log(Element)}, // 在任何步骤中移动到下一个步骤时调用
+        onPrevious: Element => {console.log(Element)} // 在任何步骤中移动到下一个步骤时调用
+    })
+    const setArr = [{
+        element: '#h3',
+        popover: {
+            title: '我真厉害!步骤1',
+            description: "那还用说!嘿嘿"
+        },
+    },
+        {
+            element: '#h4',
+            popover: {
+                title: '我真的很厉害!!!!步骤2',
+                description: "那还用说!是的哦"
+            },
+        },
+        {
+            element: '#h5',
+            popover: {
+                title: '我超厉害的!!!!!!!!!!!!!!!步骤3',
+                description: "那还用说!没错就是这样"
+            },
+        }]
+
+    btn3.onclick = () => {
+        setTimeout(() => {
+            // driver3.highlight(setArr[0])
+            //定义步骤
+            driver3.defineSteps(setArr)
+            driver3.start()
+        }, 50)
+
+    }
+</script>
+</body>
+</html>

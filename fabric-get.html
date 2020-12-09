@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取</title>
+    <link rel="stylesheet" href="./bootstrap-5.0.0-beta1-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./fabric-lib/fabric.css">
+
+</head>
+<body>
+<div class="box">
+    <p>消防车浏览
+    </p>
+    <div class="item">
+        <div class="box_2">
+            <canvas id="c" width="600" height="750"></canvas>
+        </div>
+    </div>
+
+</div>
+<script src="./jquery-3.3.1.min.js"></script>
+<script src="./bootstrap-5.0.0-beta1-dist/js/bootstrap.min.js"></script>
+<script src="./fabric-lib/fabric.min.js"></script>
+<script>
+    $.ajax({
+        url: SERVER + 'xiaofangchehuojia/chaxun',
+        type: 'GET',
+        data: {
+            cheliangbianhao: window.cheliangbianhao
+        },
+        success: (res) => {
+            if (res.status == 0) {
+                //判断是否要添加驾驶舱货架
+                $(res.data).each(function (i, t) {
+                    if (t.huojiamingcheng == '驾驶室货架') {
+                        $.ajax({
+                            url: SERVER + 'xiaofangchehuojia/findqicailistbyhuojiaid',
+                            type: 'GET',
+                            data: {
+                                id: t.id
+                            },
+                            success: (res) => {
+                                if (res.status == 0 && res.data.length>0) {
+                                    let dataList = '';
+                                    $(res.data).each(function (i, zhuangbei) {
+                                        console.log(res.data);
+                                        dataList += '<li>' + zhuangbei.zhuangbeileixingmingcheng + ':' + zhuangbei.shuliang + '个</li>'
+                                        if (res.data.length - 1 == i) {
+                                            var div=$('<div class="btn-jiashia" style="text-align: center;width: 85%;top: 45px;background: transparent;"></div>')
+                                            var ul = $('<ul  class="jiluList" id="' + t.id + '"   ><li style="width: 100%">' + t.huojiamingcheng + '</li></ul>');
+                                            $('.item').append(div);
+                                            $(div).append(ul);
+                                            $(ul).append(dataList);
+                                        }
+                                    });
+
+                                }else{
+                                    var div=$('<div class="btn-jiashia" style="text-align: center;width: 85%;top: 45px;background: transparent;"></div>')
+                                    var ul = $('<ul  class="jiluList" id="' + t.id + '"   ><li style="width: 100%">' + t.huojiamingcheng + '</li><li>暂无装备</li></ul>');
+                                    $('.item').append(div);
+                                    $(div).append(ul);
+                                }
+                            }
+                        });
+                    }
+                });
+
+            }
+
+        }
+    })
+    var canvas = new fabric.Canvas('c');
+    fabric.Object.prototype.transparentCorners = true;
+    fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
+    //json转图像
+    canvas.clear();
+    canvas.loadFromJSON(window.fushitu);
+    //取消交互选框
+    canvas.interactive = false;
+    var arr = canvas._objects;
+    // var content = '';
+    $(arr).each(function (index, item) {
+        item.toObject = (function (toObject) {
+            return function () {
+                return fabric.util.object.extend(toObject.call(this), {
+                    id: item.id,
+                    huojiamingcheng: item.huojiamingcheng,
+                });
+            };
+        })(item.toObject);
+        //取消交互事件
+        item.lockScalingX = true;
+        item.lockScalingY = true;
+        item.lockMovementX = true;
+        item.lockMovementY = true;
+        item.lockRotation = true;
+        // $(list[index].Equipment_list).each(function (index,item) {
+        //     content+=item.type+':'+item.num+'个。'
+        // })
+        $.ajax({
+            url: SERVER + 'xiaofangchehuojia/findqicailistbyhuojiaid',
+            type: 'GET',
+            data: {
+                id: item.id
+            },
+            success: (res) => {
+                if (res.status == 0 && res.data.length>0) {
+                    let dataList = '';
+                    $(res.data).each(function (i, zhuangbei) {
+                        dataList += '<li>' + zhuangbei.zhuangbeileixingmingcheng + ':' + zhuangbei.shuliang + '个</li>'
+                        if (res.data.length - 1 == i) {
+                            var div=$('<div style="position: absolute;text-align: center"></div>')
+                            var ul = $('<ul  class="jiluList" id="' + item.id + '"   ><li style="width: 100%">' + item.huojiamingcheng + '</li></ul>');
+                            $('.box_2').append(div);
+                            $(div).css('width',item.width*item.scaleX);
+                            $(div).css('height',item.height*item.scaleY);
+                            $(div).css('left', (item.left - item.width*item.scaleX/2));
+                            $(div).css('top', (item.top - item.height*item.scaleY/2));
+                            $(div).append(ul);
+                            $(ul).append(dataList);
+                        }
+                    });
+
+                }else{
+                    var div=$('<div style="position: absolute;text-align: center"></div>')
+                    $(div).css('width',item.width*item.scaleX);
+                    $(div).css('height',item.height*item.scaleY);
+                    var ul = $('<ul class="jiluList" id="' + item.id + '"   ><li style="width: 100%;">' + item.huojiamingcheng + '</li><li>暂无装备</li></ul>');
+                    $('.box_2').append(div);
+                    $(div).css('left', (item.left - item.width*item.scaleX/ 2));
+                    $(div).css('top', (item.top - item.height*item.scaleY/ 2));
+                    $(div).append(ul);
+                }
+            }
+        });
+
+    });
+
+    // $('.button').click(function () {
+    //     console.log($(this).data('obj'));
+    // });
+
+
+</script>
+</body>
+</html>

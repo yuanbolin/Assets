@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>设置</title>
+    <link rel="stylesheet" href="./bootstrap-5.0.0-beta1-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./fabric-lib/fabric.css">
+
+</head>
+<body>
+<div class="box">
+    <p class="handle">消防车编辑
+        <button type="button" class="add btn btn-primary">添加</button>
+        <button type="button" class="delete btn btn-primary">删除</button>
+        <!--        <button type="button" class="getJSON btn btn-primary">保存</button>-->
+    </p>
+    <div class="item">
+        <div class="box_2">
+            <canvas id="c" width="600" height="750"></canvas>
+        </div>
+    </div>
+
+</div>
+<div class="modal fade" id="exampleModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-backdrop="modal" data-dismiss="modal" aria-label="Close"
+                        onclick="redress()"><span
+                        aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="exampleModalLabel">添加</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="warehouse-name">消防车货架名称:</label>
+                        <input type="text" class="form-control" id="warehouse-name" placeholder="请输入货架名称,不能重复">
+                    </div>
+                    <!--                    <div class="form-group Equipment">-->
+                    <!--                        <label class="control-label">添加装备</label>-->
+                    <!--                        <div class="input-group">-->
+                    <!--                            <div class="input-group-btn">-->
+                    <!--                                <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown"-->
+                    <!--                                        aria-haspopup="true" aria-expanded="false">线盘<span class="caret"></span>-->
+                    <!--                                </button>-->
+                    <!--                                <ul class="dropdown-menu">-->
+                    <!--                                    <li><a href="#">线盘</a></li>-->
+                    <!--                                    <li><a href="#">撬棍</a></li>-->
+                    <!--                                    <li><a href="#">大绳</a></li>-->
+                    <!--                                    <li><a href="#">救援三脚架</a></li>-->
+                    <!--                                    <li><a href="#">六米拉梯</a></li>-->
+                    <!--                                </ul>-->
+                    <!--                            </div>&lt;!&ndash; /btn-group &ndash;&gt;-->
+                    <!--                            <input type="number" class="form-control" placeholder="请输入此装备的数量">-->
+                    <!--                        </div>&lt;!&ndash; /input-group &ndash;&gt;-->
+                    <!--                    </div>-->
+                    <!--                    <div class="form-group">-->
+                    <!--                        <button type="button" class="btn btn-primary append">继续添加</button>-->
+                    <!--                    </div>-->
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="redress()">取消</button>
+                <button type="button" class="btn btn-primary confirm">创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="initial">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">选择存放地点</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label class="control-label">存放地点列表:
+                            <select class="form-control cunfangdidian">
+
+                            </select>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary create_site" data-dismiss="modal">编辑</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="./jquery-3.3.1.min.js"></script>
+<script src="../bootstrap-5.0.0-beta1-dist/js/bootstrap.min.js"></script>
+<script src="./fabric-lib/fabric.min.js"></script>
+<script>
+    let cunfangdiidan = [];
+    $(document).ready(function () {
+
+        let site = '';
+        let cheliangbianhao = '';
+        let fushitu = '';
+        //获取存放地点下拉列表
+        $.ajax({
+            url: SERVER + "cunfangdidianXialaLiebiao",
+            type: 'GET',
+            data: {
+                cangkumingcheng: '消防车仓库'
+            },
+            success: function (data) {
+                if(data.data.length>0){
+                    $(data.data).each(function (index, item) {
+                        var option = $('<option value="' + item.cunfangdidianmingcheng + '">' + item.cunfangdidianmingcheng + '</option>');
+                        $('.cunfangdidian').append(option);
+                    })
+                    cunfangdiidan = data.data;
+                    //禁止esc和外部关闭模态框
+                    $('#initial').modal({backdrop: 'static', keyboard: false});
+                }else{
+                    alert('请先添加消防车仓库!')
+                }
+
+            }
+        });
+
+        //传值数组
+        let arr = [];
+        //旧值
+        let scalex = 1;
+        let scaley = 1;
+        //模拟id
+        let num = 1;
+        // create a wrapper around native canvas element (with id="c")
+        var canvas = new fabric.Canvas('c',{
+            hoverCursor: 'pointer',
+            selection: false,
+        });
+        fabric.Object.prototype.transparentCorners = true;
+        fabric.Object.prototype.originX = fabric.Object.prototype.originY = 'center';
+        fabric.Canvas.prototype.getAbsoluteCoords = function (object) {
+            // this._offset.left,this._offset.top
+            return {
+                left: object.left,
+                top: object.top
+            };
+        };
+        //存储cangkumingcheng
+        $('.create_site').click(function () {
+            site = $('.cunfangdidian option:selected').val();
+            $(cunfangdiidan).each(function (index, item) {
+                if (item.cunfangdidianmingcheng == site) {
+                    $.ajax({
+                        url: SERVER + 'xiaofangchehuojia/chaxun',
+                        type: 'GET',
+                        data: {
+                            cheliangbianhao: item.cheliangbianhao
+                        },
+                        success: (res) => {
+                            if (res.status == 0) {
+                                //判断是否要添加驾驶舱货架
+                                if (res.data.length == 0) {
+                                    jiashishi('驾驶室货架');
+                                } else {
+                                    var num = 0;
+                                    $(res.data).each(function (i, t) {
+                                        if (t.huojiamingcheng != '驾驶室货架') {
+                                            num++
+                                        } else {
+                                            var btn = $('<button style=" \n' +
+                                                '    height: 30px;\n' +
+                                                '    position: absolute;" type="button" class="btn-jiashi" >驾驶室货架</button>');
+                                            $('.item').append(btn);
+                                        }
+                                    });
+                                    if (num == res.data.length) {
+                                        jiashishi('驾驶室货架');
+                                    }
+                                }
+
+                            }
+
+                        }
+                    })
+                    cheliangbianhao = item.cheliangbianhao;
+                    fushitu = item.fushitu;
+                    if (cheliangbianhao) {
+                        //json转图像
+                        canvas.clear();
+                        canvas.loadFromJSON(fushitu);
+                        var arr = canvas._objects;
+                        var content = '';
+                        $(arr).each(function (index, item) {
+                            item.toObject = (function (toObject) {
+                                return function () {
+                                    return fabric.util.object.extend(toObject.call(this), {
+                                        id: item.id,
+                                        huojiamingcheng: item.huojiamingcheng,
+                                    });
+                                };
+                            })(item.toObject);
+                            //取消交互事件
+                            item.lockRotation = true;
+                            // $(list[index].Equipment_list).each(function (index,item) {
+                            //     content+=item.type+':'+item.num+'个。'
+                            // })
+                            var btn = $('<button style=" \n' +
+                                '    height: 16px;\n' +
+                                '    position: absolute;" class="btn btn-lg button" id="' + item.id + '" type="button"  data-container="body" data-toggle="popover" data-placement="top" data-content="6m楼梯:2个">' + item.huojiamingcheng + '</button>');
+                            $('.box_2').append(btn);
+                            var btnWidth = parseInt($(btn).css('width').split('px')[0]);
+                            var btnHeight = parseInt($(btn).css('height').split('px')[0]);
+                            var absCoords = canvas.getAbsoluteCoords(item);
+                            btn.css('left', (absCoords.left - btnWidth / 2));
+                            btn.css('top', (absCoords.top - btnHeight / 2));
+                            //添加监听事件
+                            item.on('moving', function (e) {
+                                limiting(e)
+                                positionBtn(item, btn);
+                            });
+                            item.on('moved', function () {
+                                saveJSON();
+                            });
+                            item.on('scaled', function () {
+                                saveJSON();
+                            });
+                            item.on('scaling', function (e) {
+                                limiting(e)
+                                positionBtn(item, btn)
+                            });
+                        });
+
+                    }
+                }
+            })
+        })
+        //添加装备
+        $('.append').click(function () {
+            let input = $('<div class="input-group temporary">\n' +
+                '                            <div class="input-group-btn">\n' +
+                '                                <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">线盘<span class="caret"></span></button><ul class="dropdown-menu">\n' +
+                '                                    <li><a href="#">线盘</a></li>\n' +
+                '                                    <li><a href="#">撬棍</a></li>\n' +
+                '                                    <li><a href="#">大绳</a></li>\n' +
+                '                                    <li><a href="#">救援三脚架</a></li>\n' +
+                '                                    <li><a href="#">六米拉梯</a></li>\n' +
+                '                                </ul>\n' +
+                '                            </div><!-- /btn-group -->\n' +
+                '                            <input type="number" class="form-control" placeholder="请输入此装备的数量">\n' +
+                '                        </div><!-- /input-group -->');
+            $('.Equipment').append(input);
+        })
+        //选择装备
+        $('.Equipment').on('click', '.dropdown-menu li', function (e) {
+            $(this).parents('.input-group').find('.dropdown-toggle').html(e.target.innerText + '<span class="caret"></span>')
+        })
+        //确认添加货架
+        $('.confirm').click(function () {
+            let warehouse = $('#warehouse-name').val();
+            addhuojia(warehouse);
+        });
+
+//添加货架
+        function addhuojia(warehouse) {
+            $.ajax({
+                url: SERVER + "xiaofangchehuojia/tianjia",
+                type: 'POST',
+                data: {
+                    cunfangdidianmingcheng: site,
+                    huojiamingcheng: warehouse
+                },
+                success: function (data) {
+                    if (data.status != 0) {
+                        alert(data.message);
+                        return;
+                    }
+                    if (data.status == 0) {
+                        //添加区块
+                        var box = new fabric.Rect({
+                            width: 100,
+                            height: 100,
+                            fill: '#ffffff',
+                            stroke: '#000',
+                            top: 100,
+                            left: 100,
+                            lockRotation: true,
+                        });
+
+                        canvas.add(box);
+                        box.button = 'btn' + num;
+                        box.id = data.data.id;
+
+                        var btn = $('<button style=" \n' +
+                            '    height: 30px;\n' +
+                            '    position: absolute;" type="button" class="button" >' + warehouse + '</button>');
+                        $('.box_2').append(btn);
+                        var btnWidth = parseInt($(btn).css('width').split('px')[0]);
+                        var btnHeight = parseInt($(btn).css('height').split('px')[0]);
+                        var absCoords = canvas.getAbsoluteCoords(box);
+                        btn.css('left', (absCoords.left - btnWidth / 2));
+                        btn.css('top', (absCoords.top - btnHeight / 2));
+                        btn.attr('id', data.data.id);
+                        //添加监听事件
+                        box.on('moving', function (e) {
+                            limiting(e)
+                            positionBtn(box, btn);
+                        });
+                        box.on('moved', function () {
+                            saveJSON();
+                        });
+                        box.on('scaled', function () {
+                            saveJSON();
+                        });
+                        box.on('scaling', function (e) {
+                            limiting(e)
+                            positionBtn(box, btn)
+                        });
+                        // box.on('moved',function () {
+                        //     console.log('移动结束');
+                        // })
+                        // box.on('scaled',function () {
+                        //     console.log('缩放结束');
+                        // })
+                        //存object
+                        box.toObject = (function (toObject) {
+                            return function () {
+                                return fabric.util.object.extend(toObject.call(this), {
+                                    id: data.data.id,
+                                    huojiamingcheng: data.data.huojiamingcheng,
+                                });
+                            };
+                        })(box.toObject);
+                        let obj = {};
+                        let Equipment_list = [];
+                        $('.input-group').each(function (index, item) {
+                            let type = $(item).find('button').text().replace(/(^\s*)|(\s*$)/g, "");
+                            let num = $(item).find('input').val().replace(/(^\s*)|(\s*$)/g, "");
+                            let obj = {
+                                type, num
+                            };
+                            Equipment_list.push(obj)
+
+                        });
+                        obj = {
+                            Equipment_list,
+                            warehouse
+                        };
+                        btn.data('obj', obj);
+                        arr.push(obj);
+                        //善后
+                        redress();
+                        saveJSON();
+                    }
+                }
+            });
+        }
+
+        //添加驾驶室货架
+        function jiashishi(warehouse) {
+            $.ajax({
+                url: SERVER + "xiaofangchehuojia/tianjia",
+                type: 'POST',
+                data: {
+                    cunfangdidianmingcheng: site,
+                    huojiamingcheng: warehouse
+                },
+                success: function (data) {
+                    if (data.status == 0) {
+                        var btn = $('<button style=" \n' +
+                            '    height: 30px;\n' +
+                            '    position: absolute;" type="button" class=" btn-jiashi" >驾驶室货架</button>');
+                        $('.item').append(btn);
+                    }
+                }
+            });
+        }
+
+        //弹出添加仓库表单
+        $('.add').click(function () {
+            $('#exampleModal').modal('show');
+        });
+
+        //限制边界
+        function limiting(e) {
+            //最大值
+            var MaxWidth = canvas.width;
+            var MaxHeight = canvas.height;
+            if ((e.target.width) * e.target.scaleX > MaxWidth) {
+                e.target.scaleX = scalex;
+            }
+            if ((e.target.height) * e.target.scaleY > MaxHeight) {
+                e.target.scaleY = scaley;
+            }
+            // scalex = e.target.scaleX;
+            // scaley = e.target.scaleY;
+            if (e.target.left - ((e.target.width / 2) * e.target.scaleX) <= 0) {
+                e.target.left = ((e.target.width / 2) * e.target.scaleX);
+            } else if (e.target.left + ((e.target.width / 2) * e.target.scaleX) >= MaxWidth) {
+                e.target.left = MaxWidth - ((e.target.width / 2) * e.target.scaleX);
+            }
+            if (e.target.top - ((e.target.height / 2) * e.target.scaleY) <= 0) {
+                e.target.top = ((e.target.height / 2) * e.target.scaleY);
+            } else if (e.target.top + ((e.target.height / 2) * e.target.scaleY) >= MaxHeight) {
+                e.target.top = MaxHeight - ((e.target.height / 2) * e.target.scaleY);
+            }
+        }
+
+        //移动,缩放事件回调
+        function positionBtn(obj, btn) {
+            var btnWidth = parseInt($(btn).css('width').split('px')[0]);
+            var btnHeight = parseInt($(btn).css('height').split('px')[0]);
+            var absCoords = canvas.getAbsoluteCoords(obj);
+            $(btn).css('left', (absCoords.left - btnWidth / 2));
+            $(btn).css('top', (absCoords.top - btnHeight / 2));
+        };
+
+        //图像转化为json
+        function saveJSON() {
+            canvas.includeDefaultValues = false;
+            var c = canvas.toJSON();
+            $.ajax({
+                url: SERVER + 'xiaofangchehuojia/baocunfushitu',
+                type: 'POST',
+                data: {
+                    cunfangdidianmingcheng: site,
+                    fushitu: JSON.stringify(c)
+                },
+                success: function (data) {
+                    if (data.status == 0) {
+                        console.log('保存成功!')
+                    }
+                }
+            })
+        }
+
+        // $('.getJSON').click(function () {
+        //     saveJSON();
+        // });
+        //删除
+        $('.delete').click(function () {
+
+            var el = canvas.getActiveObject();
+            if (el) {
+                $.ajax({
+                    url: SERVER + 'xiaofangchehuojia/findqicailistbyhuojiaid',
+                    type: 'GET',
+                    data: {
+                        id: el.toObject().id
+                    },
+                    success: (res) => {
+                        if (res.status == 0) {
+                            if (res.data.length == 0) {
+                                let ids = [];
+                                ids.push(el.toObject().id);
+                                ids = JSON.stringify(ids);
+                                $.ajax({
+                                    url: SERVER + 'xiaofangchehuojia/shanchu',
+                                    type: 'GET',
+                                    data: {
+                                        ids
+                                    },
+                                    success: function (data) {
+                                        if (data.status == 0) {
+                                            // $(arr).each(function (index, item) {
+                                            //     if (item == $(`#${el.button}`).data('obj')) {
+                                            //         arr.splice(index, 1)
+                                            //     }
+                                            // })
+                                            $(`#${el.toObject().id}`).remove();
+                                            canvas.remove(el);
+                                            saveJSON();
+                                        }
+                                    }
+                                })
+                            } else {
+                                alert('您要删除的货架存有装备,无法删除!');
+                            }
+                        } else {
+                            alert('服务器错误')
+                        }
+                    }
+                })
+
+
+            }
+
+        });
+    });
+
+    //窗口善后
+    function redress() {
+        $('.form-control').val('');
+        $('.input-group button').html('线盘' + '<span class="caret"></span>');
+        $('.temporary').remove();
+        $('#warehouse-name').val('');
+        $('#exampleModal').modal('hide');
+    }
+</script>
+</body>
+</html>

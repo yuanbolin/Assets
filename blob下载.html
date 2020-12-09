@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>blob下载</title>
+</head>
+<body>
+<script>
+    function download(url) {
+        const xhr = new XMLHttpRequest()
+        xhr.open('GET', url)
+        xhr.setRequestHeader( 'Access-Control-Allow-Origin', '*');
+        xhr.setRequestHeader( 'Content-Type', 'application/json' );
+        xhr.responseType = 'blob'
+        xhr.send()
+        xhr.onload = function (e) {
+            const fileBlob = xhr.response
+            console.log(fileBlob)
+            const fileUrl = URL.createObjectURL(fileBlob)
+            console.log(fileUrl)
+            let a = document.createElement('a')
+            a.setAttribute('href', fileUrl)
+            a.innerText = '下载'
+            a.setAttribute('download', '')
+            document.body.appendChild(a)
+        }
+    }
+
+    const imgUrl = 'https://static.woshipm.com/views/2020101120205245921.jpeg'
+    download(imgUrl)
+</script>
+</body>
+</html>
