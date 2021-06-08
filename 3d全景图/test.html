@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>My first three.js app</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%
+        }
+
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            display: block;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+<div id="info">Description</div>
+<script src="./assets/three.js"></script>
+<script>
+
+    //使用步骤总结:
+    // 1.场景+摄像机布置.
+    // 2.渲染器+材质+路径.
+    // 3.添加到场景里,触发动画函数
+    var scene = new THREE.Scene(); //场景  必需
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);  //摄像机  必需
+
+    var renderer = new THREE.WebGLRenderer(); //渲染器
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    // 我们花一点点时间来解释一下这里发生了什么。我们现在建立了场景、相机和渲染器。
+    var geometry = new THREE.BoxGeometry(2, 2, 4); //立方体
+    var material = new THREE.MeshBasicMaterial({color: '#ff0a0a'});  //材质
+    var cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    var geometry3 = new THREE.BoxGeometry(4, 4, 2); //立方体
+    var material3 = new THREE.MeshBasicMaterial({color: '#ff0a0a'});  //材质
+    var cube3 = new THREE.Mesh(geometry3, material3);
+    scene.add(cube3);
+
+    //create a blue LineBasicMaterial
+    var material2 = new THREE.LineBasicMaterial({color: 0x0000ff}); //材质
+    var geometry2 = new THREE.Geometry();  //线条画出3D菱形
+    geometry2.vertices.push(new THREE.Vector3(10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 5, 0));
+    geometry2.vertices.push(new THREE.Vector3(-10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 0, 10));
+    geometry2.vertices.push(new THREE.Vector3(0, 5, 0));
+    geometry2.vertices.push(new THREE.Vector3(10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 0, 10));
+    geometry2.vertices.push(new THREE.Vector3(10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 0, -10));
+    geometry2.vertices.push(new THREE.Vector3(-10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 0, -10));
+    geometry2.vertices.push(new THREE.Vector3(-10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, -10, 0));
+    geometry2.vertices.push(new THREE.Vector3(10, -5, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 0, -10));
+    geometry2.vertices.push(new THREE.Vector3(0, -10, 0));
+    geometry2.vertices.push(new THREE.Vector3(0, 0, 10));
+    var line = new THREE.Line(geometry2, material2);
+    scene.add(line);
+
+
+    camera.position.z = 30; //设置这相机垂直距离
+    camera.position.x = 0; //设置这相机水平
+    function animate() {
+        requestAnimationFrame(animate);
+        line.rotation.x += 0.01;
+        line.rotation.y += 0.02;
+        cube.rotation.x += 0.02;
+        cube.rotation.y += 0.01;
+        cube3.rotation.x += 0.02;
+        cube3.rotation.y += 0.01;
+        renderer.render(scene, camera);
+    }
+
+    animate();
+</script>
+</body>
+</html>
